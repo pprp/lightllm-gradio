@@ -5,59 +5,74 @@ import json
 from scipy.stats import kendalltau
 import numpy as np 
 
-TASK='valacc'
 
-path = "./results_valacc_10p.json"
-with open(path) as f:
-    data = json.load(f)
-gt_list = data['gt']
-pd_list = data['pd']
 
-sns.set_theme(style="whitegrid")
-ax = sns.scatterplot(x=gt_list, y=pd_list)
-ax.set_title(f'Correlation Plot of {TASK}')
-ax.set_xlabel('Ground Truth')
-ax.set_ylabel('Predicted')
+def plot_scatter(TASK='valacc'):
+    # set dpi
+    plt.rcParams['figure.dpi'] = 300
 
-# calculate kendall tau and mse 
-tau, p_value = kendalltau(gt_list, pd_list)
-mse = ((np.array(gt_list) - np.array(pd_list)) ** 2).mean()
+    path = f"./results/results_{TASK}_10p.json"
+    with open(path) as f:
+        data = json.load(f)
+    gt_list = data['gt']
+    pd_list = data['pd']
 
-# add text to the plot
-textstr = '\n'.join((
-    r'$\tau=%.2f$' % (tau, ),
-    r'$mse=%.2f$' % (mse, )))
-props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
-ax.text(0.1, 0.9, textstr, transform=ax.transAxes, fontsize=14,
-        verticalalignment='top', bbox=props)
+    sns.set_theme(style="whitegrid")
+    ax = sns.scatterplot(x=gt_list, y=pd_list)
+    ax.set_title(f'Correlation Plot of {TASK}')
+    ax.set_xlabel('Ground Truth')
+    ax.set_ylabel('Predicted')
 
-plt.savefig(f'violinplot_10p_{TASK}.png')
-plt.clf()
+    # calculate kendall tau and mse 
+    tau, p_value = kendalltau(gt_list, pd_list)
+    mse = ((np.array(gt_list) - np.array(pd_list)) ** 2).mean()
 
-# draw another figure that filterout the gt under 20 
-gt_list_filtered, pd_list_filtered = [], []
-for gt, pd in zip(gt_list, pd_list):
-    if gt > 20:
-        gt_list_filtered.append(gt)
-        pd_list_filtered.append(pd)
+    # add text to the plot
+    textstr = '\n'.join((
+        r'$\tau=%.2f$' % (tau, ),
+        r'$mse=%.2f$' % (mse, )))
+    props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+    ax.text(0.1, 0.9, textstr, transform=ax.transAxes, fontsize=14,
+            verticalalignment='top', bbox=props)
 
-sns.set_theme(style="whitegrid")
-ax = sns.scatterplot(x=gt_list_filtered, y=pd_list_filtered)
-ax.set_title(f'Correlation Plot of {TASK} > 20')
-ax.set_xlabel('Ground Truth')
-ax.set_ylabel('Predicted')
+    plt.tight_layout()
+    plt.savefig(f'./results/scatterplot_10p_{TASK}.png')
+    plt.clf()
 
-# calculate kendall tau
-tau, p_value = kendalltau(gt_list_filtered, pd_list_filtered)
-mse = ((np.array(gt_list) - np.array(pd_list)) ** 2).mean()
+    # # draw another figure that filterout the gt under 20 
+    # gt_list_filtered, pd_list_filtered = [], []
+    # for gt, pd in zip(gt_list, pd_list):
+    #     if gt > 20:
+    #         gt_list_filtered.append(gt)
+    #         pd_list_filtered.append(pd)
 
-# add text to the plot
-textstr = '\n'.join((
-    r'$\tau=%.2f$' % (tau, ),
-    r'$mse=%.2f$' % (mse, )))
-props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
-ax.text(0.1, 0.9, textstr, transform=ax.transAxes, fontsize=14,
-        verticalalignment='top', bbox=props)
+    # sns.set_theme(style="whitegrid")
+    # ax = sns.scatterplot(x=gt_list_filtered, y=pd_list_filtered)
+    # ax.set_title(f'Correlation Plot of {TASK} > 20')
+    # ax.set_xlabel('Ground Truth')
+    # ax.set_ylabel('Predicted')
 
-plt.savefig(f'violinplot_10p_filtered_{TASK}.png')
-plt.clf()
+    # # calculate kendall tau
+    # tau, p_value = kendalltau(gt_list_filtered, pd_list_filtered)
+    # mse = ((np.array(gt_list) - np.array(pd_list)) ** 2).mean()
+
+    # # add text to the plot
+    # textstr = '\n'.join((
+    #     r'$\tau=%.2f$' % (tau, ),
+    #     r'$mse=%.2f$' % (mse, )))
+    # props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+    # ax.text(0.1, 0.9, textstr, transform=ax.transAxes, fontsize=14,
+    #         verticalalignment='top', bbox=props)
+
+    # plt.savefig(f'./results/scatterplot_10p_filtered_{TASK}.png')
+    # plt.clf()
+
+
+task_list = ['trainacc', 'trainloss', 'valacc', 'valloss', 'params', 'flops', 'latency']
+
+for task in task_list:
+    try:
+        plot_scatter(task)
+    except:
+        print(f'Error in {task}')
+        continue

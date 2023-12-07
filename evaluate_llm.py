@@ -8,7 +8,7 @@ import re
 from scipy.stats import kendalltau
 from tqdm import tqdm
 
-TASK='params'
+TASK='flops'
 print(TASK)
 
 def extract_before_second_dot(text):
