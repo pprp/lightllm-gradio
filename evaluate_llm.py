@@ -68,7 +68,7 @@ if __name__ == "__main__":
                         default="http://localhost:8080/generate")
     args = parser.parse_args()
 
-    json_file = './nb201_finetune.json'
+    json_file = './nb201_finetune_smaller_10p.json'
     with open(json_file) as f:
         data = json.load(f)["instances"]
     
@@ -98,7 +98,7 @@ if __name__ == "__main__":
     re_dict = {}
     re_dict['gt'] = gt_list
     re_dict['pd'] = pd_list
-    with open('results.json', 'w') as f:
+    with open('results_10p.json', 'w') as f:
         json.dump(re_dict, f)
     
     # plot correlation 
@@ -107,7 +107,7 @@ if __name__ == "__main__":
 
     sns.set_theme(style="whitegrid")
     ax = sns.violinplot(x=gt_list, y=pd_list)
-    plt.savefig('violinplot.png')
+    plt.savefig('violinplot_10p.png')
 
 
 
