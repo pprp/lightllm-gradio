@@ -8,6 +8,9 @@ import re
 from scipy.stats import kendalltau
 from tqdm import tqdm
 
+TASK='params'
+print(TASK)
+
 def extract_before_second_dot(text):
     # Find the indices of all occurrences of '.'
     dot_indices = [i for i, char in enumerate(text) if char == '.']
@@ -68,15 +71,33 @@ if __name__ == "__main__":
                         default="http://localhost:8080/generate")
     args = parser.parse_args()
 
-    json_file = './nb201_finetune_smaller_10p.json'
+    json_file = f'./data/nb201_finetune_{TASK}_10p.json'
     with open(json_file) as f:
         data = json.load(f)["instances"]
     
     gt_list, pd_list = [], []
 
-    keys = "valid accuracy"
+    if TASK == 'trainacc':
+        keys = 'train accuracy'
+    elif TASK == 'trainloss':
+        keys = 'train loss'
+    elif TASK == 'valacc':
+        keys = "valid accuracy"
+    elif TASK == 'valloss':
+        keys = "valid loss"
+    elif TASK == 'testacc':
+        keys = "test accuracy"
+    elif TASK == 'testloss':
+        keys = "test loss"
+    elif TASK == 'params':
+        keys = "params"
+    elif TASK == 'flops':
+        keys = "flops"
+    elif TASK == 'latency':
+        keys = "latency"
+
     for _dict in tqdm(data):
-        if keys[0] in _dict['input']:
+        if keys in _dict['input']:
             # just conduct one experiment
             prompt = _dict['input']
             res = query_and_get_results(prompt)
@@ -98,7 +119,7 @@ if __name__ == "__main__":
     re_dict = {}
     re_dict['gt'] = gt_list
     re_dict['pd'] = pd_list
-    with open('results_10p.json', 'w') as f:
+    with open(f'./results/results_{TASK}_10p.json', 'w') as f:
         json.dump(re_dict, f)
     
     # plot correlation 
@@ -107,10 +128,4 @@ if __name__ == "__main__":
 
     sns.set_theme(style="whitegrid")
     ax = sns.violinplot(x=gt_list, y=pd_list)
-    plt.savefig('violinplot_10p.png')
-
-
-
-            
-
-
+    plt.savefig(f'./results/violinplot_{TASK}_10p.png')
