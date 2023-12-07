@@ -15,7 +15,18 @@ def extract_before_second_dot(text):
         # If there are fewer than two dots, return the original text
         return text
 
-def http_bot(prompt):
+
+def prompt_gen(prompt: str, pred_type: str) -> str:
+    if prompt == "":
+        return ""
+    prompt = "The architecture string is " + prompt + ".Predict the "
+    prompt += pred_type
+    prompt += " of this architecture based on the NAS-Bench-201 search space and CIFAR-10 dataset."
+    return prompt
+
+
+def http_bot(prompt, radio):
+    prompt = prompt_gen(prompt, radio)
     System = "As an expert in Neural Architecture Search, your task is to evaluate the performance of a given neural architecture. " \
          "Please focus solely on providing detailed estimates of its accuracy, flops, params, and loss. " \
          "Answer the question in just one sentence and just stop. Avoid addressing any content beyond these performance metrics. " \
@@ -45,9 +56,26 @@ def http_bot(prompt):
 def build_demo():
     with gr.Blocks() as demo:
         gr.Markdown("# NASBenchGPT text completion demo\n")
-        inputbox = gr.Textbox(label="Input", placeholder="Enter text and press ENTER")
+        
+        inputbox = gr.Textbox(label="Input", placeholder="Enter arch and press ENTER", info="Enter a NN block arch like\n|avg_pool_3x3~0|+|nor_conv_1x1~0|skip_connect~1|+|nor_conv_1x1~0|skip_connect~1|skip_connect~2|")
+        
+        with gr.Row():
+            with gr.Column():
+                radio = gr.Radio(["valid accuracy", "train accuracy", "valid loss", "train loss", "params", "latency"], value="valid accuracy", label="Predict", info="Choose one to predict")
+                with gr.Row():
+                    radio_sp = gr.Radio(["NAS-Bench-201"], value="NAS-Bench-201", label="Search Space")
+                    radio_ds = gr.Radio(["CIFAR-10"], value="CIFAR-10", label="Dataset")
+            with gr.Column():
+                preview_btn = gr.Button("Prompt Preview")
+                submit_btn = gr.Button("Submit")
+                gr.ClearButton(inputbox)
+        
+        previewoutput = gr.Textbox(label="Prompt Preview", placeholder="Prompt Preview")
         outputbox = gr.Textbox(label="Output", placeholder="Generated result from the model")
-        inputbox.submit(http_bot, inputs=inputbox, outputs=outputbox)
+        
+        inputbox.submit(http_bot, inputs=[inputbox, radio], outputs=outputbox)
+        preview_btn.click(fn=prompt_gen, inputs=[inputbox, radio], outputs=previewoutput, api_name="PromptPreview")
+        submit_btn.click(http_bot, inputs=[inputbox, radio], outputs=outputbox)
     return demo
 
 if __name__ == "__main__":
